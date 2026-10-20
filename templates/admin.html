@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Admin — today's classrooms{% endblock %}
+{% set active = 'admin' %}
+{% block content %}
+  <h1 class="phz-title">Today's classrooms</h1>
+
+  {% for c in classes %}
+  <h2 class="phz-subtitle">{{ c.room }} &mdash; {{ c.course_code }} {{ c.title }}
+    <span class="phz-badge {{ 'online' if c.status == 'in_session' else ('offline' if c.status == 'past' else 'reserved') }}" style="margin-left: var(--size-3);">
+      {{ {'in_session': 'In session', 'upcoming': 'Upcoming', 'past': 'Ended'}[c.status] }}
+    </span>
+  </h2>
+  <div style="color: var(--ink-muted); font-size: var(--text-caption); margin-bottom: var(--size-3);">
+    {{ c.start|fmt_time }}–{{ c.end|fmt_time }} &middot; roster: {{ c.roster|map(attribute='email')|join(', ') }}
+  </div>
+  <div class="phz-card" style="padding:0; margin-bottom: var(--size-6);">
+    <table class="phz-table">
+      <tr><th>Machine</th><th>Online</th><th>Booked this session</th><th></th></tr>
+      {% for m in c.room_machines %}
+      {% set b = active_by_machine.get(m.id) %}
+      <tr>
+        <td>{{ m.name }}</td>
+        <td><span class="phz-badge {{ 'online' if m.is_online else 'offline' }}">{{ 'online' if m.is_online else 'offline' }}</span></td>
+        <td>{{ b.email if b else '—' }}</td>
+        <td>
+          {% if b %}
+          <form method="post" action="/status/{{ b.id }}/release" style="display:inline; margin:0;">
+            <button class="phz-btn phz-btn-negative" style="padding: var(--size-2) var(--size-4); font-size: var(--text-caption);" type="submit">Force release</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endfor %}
+
+  <h2 class="phz-subtitle">Booking history</h2>
+  <div class="phz-card" style="padding:0;">
+    <table class="phz-table">
+      <tr><th>Email</th><th>Machine</th><th>Status</th></tr>
+      {% for b in bookings %}
+      <tr><td>{{ b.email }}</td><td>{{ b.machine_name }}</td><td>{{ b.status }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <p style="margin-top: var(--size-7);"><a class="phz-link-subtle" href="/">&larr; My schedule</a></p>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ c.room }} — free machines{% endblock %}
+{% set active = 'schedule' %}
+{% block content %}
+  <h1 class="phz-title">{{ c.room }}</h1>
+  <div class="phz-stat">{{ c.course_code }} &middot; {{ c.title }} &middot; in session until {{ c.end|fmt_time }}</div>
+  <div style="color: var(--ink-muted); font-size: var(--text-caption); margin-bottom: var(--size-5);">
+    {{ free_machines|length }} / {{ room_total }} machines free right now in this room
+  </div>
+
+  {% if not free_machines %}
+  <div class="phz-card">No free machines in {{ c.room }} right now — check back shortly or ask your instructor.</div>
+  {% endif %}
+
+  <div class="phz-card" style="padding:0;">
+    {% for m in free_machines %}
+    <form method="post" action="{{ url_for('book', class_id=c.id) }}" style="display:flex; align-items:center; justify-content:space-between; padding: var(--size-4) var(--size-5); border-bottom: 1px solid var(--border);">
+      <span>{{ m.name }}</span>
+      <input type="hidden" name="machine_id" value="{{ m.id }}">
+      <button class="phz-btn phz-btn-primary" style="padding: var(--size-2) var(--size-4); font-size: var(--text-caption);" type="submit">Connect</button>
+    </form>
+    {% endfor %}
+  </div>
+
+  <p style="margin-top: var(--size-7);"><a class="phz-link-subtle" href="/">&larr; Back to schedule</a></p>
+{% endblock %}

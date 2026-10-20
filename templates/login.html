@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Log in — Phaze Classroom Scheduler{% endblock %}
+{% block main_class %} narrow{% endblock %}
+{% block content %}
+  <h1 class="phz-title">Student / faculty login</h1>
+  <div class="phz-stat">Demo login — any university email works for browsing your schedule.</div>
+
+  <div class="phz-card">
+    <form method="post">
+      <label class="phz-label">Your university email</label>
+      <input class="phz-input" type="email" name="email" required placeholder="you@university.edu" autofocus>
+      <div class="phz-actions">
+        <button class="phz-btn phz-btn-primary" type="submit">View my schedule</button>
+      </div>
+    </form>
+  </div>
+
+  <p style="margin-top: var(--size-7); color: var(--ink-muted); font-size: var(--text-caption);">
+    Try one of the sample roster emails to see a populated schedule:
+    avery.chen@sample.edu, jordan.lee@sample.edu, priya.nair@sample.edu, sam.rivera@sample.edu
+  </p>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Phaze University Scheduler{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/phaze-theme.css') }}">
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="phz-topbar">
+    <a class="phz-brand" href="/"><span class="mark"></span> Phaze Classroom Scheduler</a>
+    <nav class="phz-nav">
+      <a href="/" class="{{ 'active' if active == 'schedule' else '' }}">My schedule</a>
+      <a href="/admin" class="{{ 'active' if active == 'admin' else '' }}">Admin</a>
+      {% if session.get('email') %}<a href="/logout">Log out</a>{% endif %}
+    </nav>
+  </div>
+
+  <main class="phz-main{% block main_class %}{% endblock %}">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for m in messages %}<div class="phz-flash">{{ m }}</div>{% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

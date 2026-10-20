@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}My schedule{% endblock %}
+{% set active = 'schedule' %}
+{% block content %}
+  <h1 class="phz-title">Today's schedule</h1>
+  <div class="phz-stat">Logged in as {{ email }}</div>
+  {% if real_demo_email and real_demo_email != email %}
+  <p style="color: var(--ink-muted); font-size: var(--text-caption);">
+    Demo tip: this org's one live-connectable seat is <strong>{{ real_demo_email }}</strong> —
+    log in as that email to actually assign/connect a real machine; any other roster email can
+    still browse the schedule.
+  </p>
+  {% endif %}
+
+  {% if not classes %}
+  <div class="phz-card">You have no classes scheduled today in this demo roster.</div>
+  {% endif %}
+
+  {% for c in classes %}
+  <div class="phz-card">
+    <div class="phz-stat" style="margin-bottom:0;">{{ c.course_code }} &middot; {{ c.title }}</div>
+    <div style="color: var(--ink-muted); font-size: var(--text-caption); margin: var(--size-2) 0 var(--size-4);">
+      {{ c.room }} &middot; {{ c.start|fmt_time }}–{{ c.end|fmt_time }}
+      &middot;
+      <span class="phz-badge {{ 'online' if c.status == 'in_session' else ('offline' if c.status == 'past' else 'reserved') }}">
+        {{ {'in_session': 'In session', 'upcoming': 'Upcoming', 'past': 'Ended'}[c.status] }}
+      </span>
+    </div>
+    {% if c.status == 'in_session' %}
+      <a class="phz-btn phz-btn-primary" href="{{ url_for('class_room', class_id=c.id) }}">See free machines in {{ c.room }}</a>
+    {% elif c.status == 'upcoming' %}
+      <span style="color: var(--ink-muted); font-size: var(--text-caption);">Machines unlock when class starts.</span>
+    {% else %}
+      <span style="color: var(--ink-muted); font-size: var(--text-caption);">Class has ended.</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+{% endblock %}
