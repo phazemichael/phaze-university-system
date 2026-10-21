@@ -48,16 +48,24 @@ _real_member_cache: dict | None = None
 _real_member_checked = False
 
 
+LIVE_SEAT_EMAIL = "michael@phaze.app"
+
+
 def _real_demo_member() -> dict | None:
-    """First real member in the connected Phaze org, so at least one
-    roster seat per class can actually assign/connect live. Cached for
-    the process lifetime — restart the app if the org's members change."""
+    """The designated live-seat member (LIVE_SEAT_EMAIL) in the connected
+    Phaze org, so at least one roster seat per class can actually
+    assign/connect live. Falls back to the first org member if that email
+    isn't present. Cached for the process lifetime — restart the app if
+    the org's members change."""
     global _real_member_cache, _real_member_checked
     if not _real_member_checked:
         _real_member_checked = True
         try:
-            members = phz.list_members()
-            _real_member_cache = members[0] if members else None
+            member = phz.find_member_by_email(LIVE_SEAT_EMAIL)
+            if not member:
+                members = phz.list_members()
+                member = members[0] if members else None
+            _real_member_cache = member
         except Exception:
             _real_member_cache = None
     return _real_member_cache
