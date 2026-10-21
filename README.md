@@ -11,7 +11,10 @@ This is a sales-engineering demo, not a production system. The class schedule is
 3. **Classroom** — for a class currently in session, shows which machines in that room are free right now, pulled live from the connected Phaze org.
 4. **Book** — picks a machine, assigns it to the student's Phaze account, and shows a `phaze://connect?id=...` deep link.
 5. **Auto-release** — a background sweeper checks every 15 seconds for bookings whose class has ended and unassigns those machines automatically. Students can also release early from the schedule page.
-6. **Admin** — `/admin` shows all classes, their rooms, live machine state, and the booking history.
+6. **Weekly view** — `/schedule/week` shows a Mon-Fri recurring grid of the student's enrolled courses (MWF / TTh patterns). Informational only: today's column reuses the live-anchored session and is bookable as usual, other days show a synthesized display time with no class_id, so they can't be booked against.
+7. **Admin** — `/admin` shows all classes, their rooms, live machine state, utilization stats, and the booking history.
+8. **Admin walk-in override** — from `/admin`, assign any free machine in a class's room to any email with a real member in the connected Phaze org, regardless of roster enrollment or whether that class is currently in session. Useful for a guest seat or an off-roster student during a live demo.
+9. **Utilization stats** — `/admin` aggregates all-time booking history by room, machine, and course (booking counts, average and total session length), computed in `stats.py`.
 
 Design choices worth knowing if you're presenting this:
 - Booking is strictly gated to class time — no ad-hoc reservations outside a scheduled session. (See the separate generic `phaze-reservation-demo` for open-ended booking.)
@@ -59,17 +62,20 @@ The app starts on `http://127.0.0.1:5056` (see the port in `app.py` if you need 
 2. On "My Schedule," pick the class marked **in session** and open it.
 3. Pick a free machine and click to book it. This calls the live Phaze API to assign that machine to the student's account.
 4. Use the `phaze://connect?id=...` link on the status page to connect, or just narrate it if the Phaze client isn't installed on the demo machine.
-5. Visit `/admin` to show the room/machine state and booking history across all classes.
+5. Visit `/admin` to show the room/machine state, utilization stats, and booking history across all classes.
 6. To show auto-release, either wait for the class's scheduled end (anchored to when the app started) or click "Release" on the schedule page.
+7. Click "Weekly view" from the nav to show the student's Mon-Fri recurring course grid.
+8. From `/admin`, use the walk-in form under a class to assign a free machine to any email with a real seat in the org — handy for a guest or off-roster student mid-demo.
 
 ## Project layout
 
 ```
-app.py              Flask routes: login, schedule, classroom, booking, admin
-schedule.py          Synthetic class schedule, rosters, room<->machine mapping
+app.py              Flask routes: login, schedule, weekly view, classroom, booking, admin, walk-in booking
+schedule.py          Synthetic class schedule, rosters, room<->machine mapping, weekly recurring grid
 phaze_client.py       Thin wrapper around the Phaze Enterprise API
 store.py             SQLite-backed booking storage + auto-expiry queries
-templates/            Jinja templates (login, schedule, classroom, status, admin)
+stats.py             All-time utilization aggregation (by room, machine, course) for the admin page
+templates/            Jinja templates (login, schedule, week, classroom, status, admin)
 static/               CSS theme and fonts
 ```
 
@@ -77,3 +83,4 @@ static/               CSS theme and fonts
 
 - `bookings.db`, `.env`, `.venv/`, and `__pycache__/` are gitignored — don't commit real API keys or the local SQLite file.
 - The background sweeper thread runs as long as the Flask process is alive; restarting the app clears in-memory caches like the detected "live seat" member (re-detected on first request after restart).
+- `mock_seed.py` populates `bookings.db` with plausible historical bookings so the admin Utilization panel has data to show instead of "No bookings yet." Safe to re-run; it only clears its own previously-seeded rows. Not part of normal app runtime — run it manually with `python mock_seed.py` before a demo if you want the stats populated.

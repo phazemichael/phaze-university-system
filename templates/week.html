@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Weekly schedule{% endblock %}
+{% set active = 'week' %}
+{% block content %}
+  <h1 class="phz-title">Weekly schedule</h1>
+  <div class="phz-stat">Logged in as {{ email }}</div>
+  <p style="color: var(--ink-muted); font-size: var(--text-caption); margin: var(--size-2) 0 var(--size-5);">
+    Recurring weekly pattern. Booking only works for today's class while it's actually in session —
+    <a href="{{ url_for('my_schedule') }}">see today's schedule</a> for that.
+  </p>
+
+  <div style="display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--size-4);">
+    {% for day in week %}
+    <div class="phz-card" style="padding: var(--size-4); {{ 'border-color: var(--brand, #5b8def);' if day.is_today else '' }}">
+      <div class="phz-stat" style="margin-bottom: var(--size-3);">
+        {{ day.day_name }}{% if day.is_today %} <span class="phz-badge online">Today</span>{% endif %}
+      </div>
+      {% if not day.entries %}
+      <div style="color: var(--ink-muted); font-size: var(--text-caption);">No classes.</div>
+      {% endif %}
+      {% for e in day.entries %}
+      <div style="margin-bottom: var(--size-3); padding-bottom: var(--size-3); border-bottom: 1px solid var(--line, #2a2a33);">
+        <div style="font-size: var(--text-caption); font-weight: 600;">{{ e.course_code }}</div>
+        <div style="color: var(--ink-muted); font-size: var(--text-caption);">{{ e.title }}</div>
+        <div style="color: var(--ink-muted); font-size: var(--text-caption);">
+          {{ e.room }} &middot; {{ e.start|fmt_time }}–{{ e.end|fmt_time }}
+        </div>
+        {% if day.is_today and e.status == 'in_session' %}
+        <a class="phz-btn phz-btn-primary" style="margin-top: var(--size-2); padding: var(--size-1) var(--size-3); font-size: var(--text-caption);"
+           href="{{ url_for('class_room', class_id=e.class_id) }}">See free machines</a>
+        {% elif day.is_today %}
+        <span class="phz-badge {{ 'reserved' if e.status == 'upcoming' else 'offline' }}">
+          {{ 'Upcoming' if e.status == 'upcoming' else 'Ended' }}
+        </span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+{% endblock %}

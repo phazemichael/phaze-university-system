@@ -33,7 +33,66 @@
       {% endfor %}
     </table>
   </div>
+
+  {% set free_in_room = c.room_machines|rejectattr('id', 'in', active_by_machine.keys())|list %}
+  {% if free_in_room %}
+  <form method="post" action="/admin/book" style="display:flex; align-items:center; gap: var(--size-3); margin-bottom: var(--size-7);">
+    <input type="hidden" name="class_id" value="{{ c.id }}">
+    <select name="machine_id" class="phz-input" style="width:auto;">
+      {% for m in free_in_room %}
+      <option value="{{ m.id }}">{{ m.name }}</option>
+      {% endfor %}
+    </select>
+    <input type="email" name="email" placeholder="walk-in student email" required class="phz-input" style="width:auto;">
+    <button class="phz-btn phz-btn-primary" style="padding: var(--size-2) var(--size-4); font-size: var(--text-caption);" type="submit">Assign walk-in seat</button>
+  </form>
+  {% endif %}
   {% endfor %}
+
+  <h2 class="phz-subtitle">Utilization</h2>
+  <div style="color: var(--ink-muted); font-size: var(--text-caption); margin-bottom: var(--size-5);">
+    All-time totals across {{ usage.total_bookings }} bookings &middot;
+    {{ usage.active_count }} active, {{ usage.released_count }} released, {{ usage.expired_count }} auto-expired &middot;
+    avg session length {{ usage.avg_duration_min }} min
+  </div>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--size-5); margin-bottom: var(--size-7);">
+    <div class="phz-card" style="padding:0;">
+      <table class="phz-table">
+        <tr><th colspan="3">By room</th></tr>
+        <tr><th>Room</th><th>Bookings</th><th>Avg min</th></tr>
+        {% for r in usage.by_room %}
+        <tr><td>{{ r.label }}</td><td>{{ r.bookings }}</td><td>{{ r.avg_duration_min }}</td></tr>
+        {% else %}
+        <tr><td colspan="3">No bookings yet.</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div class="phz-card" style="padding:0;">
+      <table class="phz-table">
+        <tr><th colspan="3">By machine</th></tr>
+        <tr><th>Machine</th><th>Bookings</th><th>Avg min</th></tr>
+        {% for m in usage.by_machine %}
+        <tr><td>{{ m.label }}</td><td>{{ m.bookings }}</td><td>{{ m.avg_duration_min }}</td></tr>
+        {% else %}
+        <tr><td colspan="3">No bookings yet.</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div class="phz-card" style="padding:0;">
+      <table class="phz-table">
+        <tr><th colspan="3">By course</th></tr>
+        <tr><th>Course</th><th>Bookings</th><th>Avg min</th></tr>
+        {% for c in usage.by_course %}
+        <tr><td>{{ c.label }}</td><td>{{ c.bookings }}</td><td>{{ c.avg_duration_min }}</td></tr>
+        {% else %}
+        <tr><td colspan="3">No bookings yet.</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
 
   <h2 class="phz-subtitle">Booking history</h2>
   <div class="phz-card" style="padding:0;">

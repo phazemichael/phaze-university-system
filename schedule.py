@@ -25,6 +25,18 @@ import phaze_client as phz
 
 ROOM_NAMES = ["Design Lab A", "Design Lab B", "Render Farm Suite"]
 
+# Recurring weekly meeting days per course, Monday=0 .. Sunday=6 — a real
+# course schedule pattern (MWF / TTh), used only for the informational
+# weekly grid. Today's actual session keeps using the live-anchored
+# CLASS_DEFS offsets below so the "always one class in session" demo trick
+# still works regardless of which real weekday it is.
+COURSE_DAYS = {
+    "DSGN 310": [0, 2, 4],  # Mon / Wed / Fri
+    "FILM 240": [1, 3],     # Tue / Thu
+    "ANIM 455": [0, 2, 4],  # Mon / Wed / Fri
+}
+WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
 SAMPLE_ROSTER = [
     {"name": "Avery Chen", "email": "avery.chen@sample.edu"},
     {"name": "Jordan Lee", "email": "jordan.lee@sample.edu"},
@@ -76,21 +88,37 @@ def _rooms_with_machines() -> dict[str, list[dict]]:
     return rooms
 
 
+# Static (class_id, course_code, title, room, start_offset_min, duration_min)
+# definitions — the source of truth for both today's live schedule
+# (today_classes(), windows re-anchored to "now" on every call) and the
+# stable per-class metadata used for historical reporting (class_meta_by_id()),
+# where a class_id must keep mapping to the same course/room even though its
+# start/end keep sliding relative to "now".
+#
+# Chronological, non-overlapping windows (offset_min, duration_min):
+# (-150, 60) -> (-90, past) | (-20, 40) -> (+20, in session now)
+# | (+20, 60) -> (+80, upcoming) | (+80, 60) -> (+140, upcoming)
+CLASS_DEFS = [
+    ("dsgn310-earlier", "DSGN 310", "Intro to Virtual Production", ROOM_NAMES[0], -150, 60),
+    ("dsgn310-am", "DSGN 310", "Intro to Virtual Production", ROOM_NAMES[0], -20, 40),
+    ("film240-am", "FILM 240", "Color Grading Workshop", ROOM_NAMES[1], 20, 60),
+    ("anim455-pm", "ANIM 455", "Capstone Render Lab", ROOM_NAMES[2], 80, 60),
+]
+
+
 def today_classes() -> list[dict]:
     """Returns today's synthetic class sessions, anchored relative to
     now() so there is always something 'in session' and something
     'upcoming' no matter when this is called.
 
     Strictly sequential by design (per Michael): at any given moment only
-    ONE class anywhere in the schedule is in session, regardless of room.
-    The (start_offset, duration) pairs below are deliberately
-    non-overlapping — do not add a class whose window overlaps another's."""
+    ONE class anywhere in the schedule is in session, regardless of room."""
     now = datetime.now()
-
-    def session(course_code, title, room, start_offset_min, duration_min, class_id):
+    classes = []
+    for class_id, course_code, title, room, start_offset_min, duration_min in CLASS_DEFS:
         start = now + timedelta(minutes=start_offset_min)
         end = start + timedelta(minutes=duration_min)
-        return {
+        classes.append({
             "id": class_id,
             "course_code": course_code,
             "title": title,
@@ -98,18 +126,18 @@ def today_classes() -> list[dict]:
             "start": start,
             "end": end,
             "roster": _roster_for(hash(class_id) % 7),
-        }
+        })
+    return classes
 
-    rooms = ROOM_NAMES
-    # Chronological, non-overlapping windows (offset_min, duration_min):
-    # (-150, 60) -> (-90, past) | (-20, 40) -> (+20, in session now)
-    # | (+20, 60) -> (+80, upcoming) | (+80, 60) -> (+140, upcoming)
-    return [
-        session("DSGN 310", "Intro to Virtual Production", rooms[0], -150, 60, "dsgn310-earlier"),
-        session("DSGN 310", "Intro to Virtual Production", rooms[0], -20, 40, "dsgn310-am"),
-        session("FILM 240", "Color Grading Workshop", rooms[1], 20, 60, "film240-am"),
-        session("ANIM 455", "Capstone Render Lab", rooms[2], 80, 60, "anim455-pm"),
-    ]
+
+def class_meta_by_id() -> dict[str, dict]:
+    """Stable course_code/title/room lookup per class_id, independent of
+    today's shifting start/end windows. Used for reporting against
+    historical bookings."""
+    return {
+        class_id: {"course_code": course_code, "title": title, "room": room}
+        for class_id, course_code, title, room, *_ in CLASS_DEFS
+    }
 
 
 def get_class(class_id: str) -> dict | None:
@@ -146,3 +174,57 @@ def session_status(c: dict) -> str:
 
 def room_machines(room_name: str) -> list[dict]:
     return _rooms_with_machines().get(room_name, [])
+
+
+def week_schedule(email: str) -> list[dict]:
+    """Mon-Fri recurring view for the student's enrolled courses.
+
+    Informational only — booking still goes through today_classes() /
+    get_class(), gated to whatever's actually in session right now. Today's
+    column reuses the live-anchored session (so it matches the "see free
+    machines" link and the in-session countdown); other days synthesize a
+    display time from the course's recurring slot, carrying no class_id to
+    book against.
+    """
+    email_l = email.strip().lower()
+    today_list = today_classes()
+    # One representative live session per course_code: the non-"earlier"
+    # CLASS_DEFS entry is today's actual current/next session for that course.
+    representative: dict[str, dict] = {}
+    for c in today_list:
+        if not c["id"].endswith("-earlier"):
+            representative[c["course_code"]] = c
+
+    today_date = datetime.now().date()
+    monday = today_date - timedelta(days=today_date.weekday())
+
+    week: list[dict] = []
+    for day_offset, day_name in enumerate(WEEKDAY_NAMES):
+        day_date = monday + timedelta(days=day_offset)
+        is_today = day_date == today_date
+        entries = []
+        for course_code, days in COURSE_DAYS.items():
+            if day_offset not in days:
+                continue
+            rep = representative.get(course_code)
+            if not rep:
+                continue
+            if not any(r["email"].lower() == email_l for r in rep["roster"]):
+                continue  # not enrolled in this course
+            if is_today:
+                start, end, class_id, status = (
+                    rep["start"], rep["end"], rep["id"], session_status(rep),
+                )
+            else:
+                start = datetime.combine(day_date, rep["start"].time())
+                end = datetime.combine(day_date, rep["end"].time())
+                class_id = None  # informational only, not bookable
+                status = "scheduled" if day_date > today_date else "past"
+            entries.append({
+                "course_code": course_code, "title": rep["title"],
+                "room": rep["room"], "start": start, "end": end,
+                "class_id": class_id, "status": status,
+            })
+        entries.sort(key=lambda e: e["start"])
+        week.append({"day_name": day_name, "date": day_date, "is_today": is_today, "entries": entries})
+    return week

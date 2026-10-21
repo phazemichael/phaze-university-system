@@ -12,6 +12,7 @@
     <a class="phz-brand" href="/"><span class="mark"></span> Phaze Classroom Scheduler</a>
     <nav class="phz-nav">
       <a href="/" class="{{ 'active' if active == 'schedule' else '' }}">My schedule</a>
+      <a href="/schedule/week" class="{{ 'active' if active == 'week' else '' }}">Weekly view</a>
       <a href="/admin" class="{{ 'active' if active == 'admin' else '' }}">Admin</a>
       {% if session.get('email') %}<a href="/logout">Log out</a>{% endif %}
     </nav>

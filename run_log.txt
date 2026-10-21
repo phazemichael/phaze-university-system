@@ -8,3 +8,99 @@ Press CTRL+C to quit
 127.0.0.1 - - [20/Oct/2026 23:34:09] "GET /static/css/phaze-theme.css HTTP/1.1" 304 -
 127.0.0.1 - - [20/Oct/2026 23:34:09] "GET /static/fonts/atnamesansvariable-regular-basic-ZCH22AC4-ZCH22AC4.woff2 HTTP/1.1" 304 -
 127.0.0.1 - - [20/Oct/2026 23:34:09] "GET /static/fonts/atnamesansvariable-regular-extended-WX66YVDE-WX66YVDE.woff2 HTTP/1.1" 304 -
+127.0.0.1 - - [21/Oct/2026 09:46:19] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [21/Oct/2026 09:46:19] "GET /static/css/phaze-theme.css HTTP/1.1" 304 -
+127.0.0.1 - - [21/Oct/2026 09:46:19] "GET /static/fonts/atnamesansvariable-regular-basic-ZCH22AC4-ZCH22AC4.woff2 HTTP/1.1" 304 -
+127.0.0.1 - - [21/Oct/2026 09:46:19] "GET /static/fonts/atnamesansvariable-regular-extended-WX66YVDE-WX66YVDE.woff2 HTTP/1.1" 304 -
+127.0.0.1 - - [21/Oct/2026 09:46:20] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [21/Oct/2026 09:46:20] "GET /static/css/phaze-theme.css HTTP/1.1" 304 -
+127.0.0.1 - - [21/Oct/2026 09:46:25] "GET /class/dsgn310-am HTTP/1.1" 200 -
+127.0.0.1 - - [21/Oct/2026 09:46:25] "GET /static/css/phaze-theme.css HTTP/1.1" 304 -
+127.0.0.1 - - [21/Oct/2026 09:46:31] "POST /class/dsgn310-am/book HTTP/1.1" 302 -
+127.0.0.1 - - [21/Oct/2026 09:46:31] "GET /status/5f8b7120-5933-49a1-b1e8-dc946f33121b HTTP/1.1" 200 -
+127.0.0.1 - - [21/Oct/2026 09:46:31] "GET /static/css/phaze-theme.css HTTP/1.1" 304 -
+127.0.0.1 - - [21/Oct/2026 09:46:31] "GET /static/fonts/atnamemonovariable-regular-basic-DYFUSWAM-DYFUSWAM.woff2 HTTP/1.1" 304 -
+127.0.0.1 - - [21/Oct/2026 09:46:56] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [21/Oct/2026 09:46:56] "GET /static/css/phaze-theme.css HTTP/1.1" 304 -
+127.0.0.1 - - [21/Oct/2026 09:58:30] "GET /admin HTTP/1.1" 500 -
+Traceback (most recent call last):
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Michael\phaze-university-demo\app.py", line 218, in admin
+    active_by_machine = {b["machine_id"]: b for b in store.active_bookings()}
+    
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "C:\Users\Michael\AppData\Local\hermes\installs\02352419551e5a40\environments\7a8c15718bab4dd38129db22e48eaf8b\venv\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Michael\AppData\Local\hermes\installs\02352419551e5a40\environments\7a8c15718bab4dd38129db22e48eaf8b\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Michael\phaze-university-demo\templates\admin.html", line 3, in top-level template code
+    {% set active = 'admin' %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Michael\phaze-university-demo\templates\base.html", line 26, in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Michael\phaze-university-demo\templates\admin.html", line 54, in block 'content'
+    All-time totals across {{ usage.total_bookings }} bookings &middot;
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Michael\AppData\Local\hermes\installs\02352419551e5a40\environments\7a8c15718bab4dd38129db22e48eaf8b\venv\Lib\site-packages\jinja2\environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'usage' is undefined
+127.0.0.1 - - [21/Oct/2026 09:58:31] "GET /login HTTP/1.1" 200 -
+127.0.0.1 - - [21/Oct/2026 09:58:37] "GET /admin HTTP/1.1" 500 -
+Traceback (most recent call last):
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Michael\phaze-university-demo\app.py", line 218, in admin
+    active_by_machine = {b["machine_id"]: b for b in store.active_bookings()}
+    
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "C:\Users\Michael\phaze-university-demo\.venv\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "C:\Users\Michael\AppData\Local\hermes\installs\02352419551e5a40\environments\7a8c15718bab4dd38129db22e48eaf8b\venv\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Michael\AppData\Local\hermes\installs\02352419551e5a40\environments\7a8c15718bab4dd38129db22e48eaf8b\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Michael\phaze-university-demo\templates\admin.html", line 3, in top-level template code
+    {% set active = 'admin' %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Michael\phaze-university-demo\templates\base.html", line 26, in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Michael\phaze-university-demo\templates\admin.html", line 54, in block 'content'
+    All-time totals across {{ usage.total_bookings }} bookings &middot;
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Michael\AppData\Local\hermes\installs\02352419551e5a40\environments\7a8c15718bab4dd38129db22e48eaf8b\venv\Lib\site-packages\jinja2\environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'usage' is undefined
+127.0.0.1 - - [21/Oct/2026 09:58:52] "GET / HTTP/1.1" 302 -

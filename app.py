@@ -18,6 +18,7 @@ from flask import Flask, redirect, render_template, request, url_for, flash, ses
 
 import phaze_client as phz
 import schedule
+import stats
 import store
 
 app = Flask(__name__)
@@ -99,6 +100,16 @@ def my_schedule():
         "schedule.html", email=email, classes=classes,
         now=datetime.now(), real_demo_email=(real_member or {}).get("email"),
     )
+
+
+@app.route("/schedule/week")
+def my_week():
+    redir = _require_login()
+    if redir:
+        return redir
+    email = _current_email()
+    week = schedule.week_schedule(email)
+    return render_template("week.html", email=email, week=week)
 
 
 @app.route("/class/<class_id>")
@@ -215,10 +226,61 @@ def admin():
     classes.sort(key=lambda c: c["start"])
     bookings = store.all_bookings(limit=50)
     active_by_machine = {b["machine_id"]: b for b in store.active_bookings()}
+    usage = stats.compute_usage_stats(
+        store.all_bookings(limit=100000), schedule.class_meta_by_id(),
+    )
     return render_template(
         "admin.html", classes=classes, bookings=bookings,
         active_by_machine=active_by_machine, rooms=schedule.ROOM_NAMES,
+        usage=usage,
     )
+
+
+@app.route("/admin/book", methods=["POST"])
+def admin_book():
+    """Walk-in override: admin assigns a machine to any email, regardless
+    of roster enrollment or whether the class is currently in session.
+    Useful for a guest/visitor seat or a student who isn't on the
+    synthetic roster but needs a live seat for a demo."""
+    class_id = request.form.get("class_id", "")
+    email = request.form.get("email", "").strip().lower()
+    machine_id = request.form.get("machine_id", "")
+
+    c = schedule.get_class(class_id)
+    if not c:
+        flash("Class not found.")
+        return redirect(url_for("admin"))
+    if not email or "@" not in email:
+        flash("Enter a valid email for the walk-in booking.")
+        return redirect(url_for("admin"))
+
+    existing = store.active_booking_for_class_and_email(class_id, email)
+    if existing:
+        flash(f"{email} already has an active booking for this class.")
+        return redirect(url_for("admin"))
+
+    room_machines = schedule.room_machines(c["room"])
+    machine = next((m for m in room_machines if m["id"] == machine_id), None)
+    if not machine:
+        flash("That machine isn't in this room.")
+        return redirect(url_for("admin"))
+
+    member = phz.find_member_by_email(email)
+    if not member:
+        flash(f"No live Phaze account for {email} in this org — can't assign a machine to them.")
+        return redirect(url_for("admin"))
+
+    if machine_id not in phz.available_machine_ids():
+        flash(f"{machine['name']} was just taken — pick another.")
+        return redirect(url_for("admin"))
+
+    phz.assign_machine_to_user(machine_id, member["id"])
+    store.create_booking(
+        class_id, email, member["id"], machine_id, machine["name"],
+        class_end_at=c["end"].timestamp(),
+    )
+    flash(f"Walk-in seat assigned: {machine['name']} -> {email}.")
+    return redirect(url_for("admin"))
 
 
 if __name__ == "__main__":
